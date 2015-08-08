@@ -22,13 +22,14 @@ GLuint vertexShaderId;
 GLuint fragmentShaderId;
 GLuint vertexbuffer;
 GLuint vertexArrayId;
+GLuint vao = 0;
 
 GLuint vertexArrayIds[3];
 
 glm::mat4 Projection;
 glm::vec4 myVector;
 
-const GLchar * vsSource[] = {
+/*const GLchar * vsSource[] = {
     "#version 150\n",
     "uniform mat4 modelViewProjection;\n",
     "void main(void) {\n",
@@ -52,20 +53,38 @@ const GLchar * fsSource[] = {
     "void main(void) {\n",
     "   gl_FragColor = gl_Color;\n",
     "}"
+};*/
+const GLchar * vsSource[] = {
+    "#version 400\n",
+    "in vec3 vp;\n",
+    "void main(void){\n",
+    "   gl_Position = vec4(vp, 1.0);\n",
+    "}"
+};
+
+const GLchar * fsSource[] = {
+    "#version 400\n",
+    "out vec4 frag_color;\n"
+    "void main(void){\n",
+    "   frag_color = vec4(0.5, 0.0, 0.5, 1.0);\n",
+    "}"
 };
 
 static const GLfloat vertexData [] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f
+    0.0f, 0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f
 };
 
 void render(void) {
     
     glClearColor(0.1f, 0.1f, 0.1f, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(programId);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     
-    //glBindVertexArray(vertexArrayId);
+    /*//glBindVertexArray(vertexArrayId);
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -89,13 +108,21 @@ void render(void) {
     glVertex3d(1.0, 1.0, 0.0);
     glVertex3d(-1.0, 1.0, 0.0);
     glVertex3d(1.0, -1.0, 0.0);
-    glEnd();
+    glEnd();*/
 }
 
 void setupVBOs() {
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    //glBufferData(GL_ARRAY_BUFFER, data)
+    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
+    
+    //GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vboId);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    
 }
 
 void checkShaderStatus(GLuint shaderId) {
@@ -180,9 +207,9 @@ int setup() {
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     
-    //programId = glCreateProgram();
-    //setupShaders(programId, vertexShaderId, fragmentShaderId);
-    //glUseProgram(programId);
+    programId = glCreateProgram();
+    setupShaders(programId, vertexShaderId, fragmentShaderId);
+    glUseProgram(programId);
     
     return 0;
 }
@@ -195,10 +222,10 @@ int main(int argc, char * argv[]) {
         return -1;
     }
     
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     
     win = glfwCreateWindow(640, 480, "dvdkouril.", NULL, NULL);
@@ -225,6 +252,7 @@ int main(int argc, char * argv[]) {
         std::cout << glerr << std::endl;
     }
     
+    setupVBOs();
     setup();
     
     glUseProgram(programId);

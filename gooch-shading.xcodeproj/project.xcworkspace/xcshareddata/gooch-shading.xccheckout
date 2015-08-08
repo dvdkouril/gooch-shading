@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>D6766971-CCC9-4F3F-A45C-422EAF24EFD5</string>
+	<key>IDESourceControlProjectName</key>
+	<string>gooch-shading</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>C4503B8E64093452236FA146EAB459FF17F6BAA2</key>
+		<string>https://github.com/dvdkouril/gooch-shading.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>gooch-shading.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>C4503B8E64093452236FA146EAB459FF17F6BAA2</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/dvdkouril/gooch-shading.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>C4503B8E64093452236FA146EAB459FF17F6BAA2</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C4503B8E64093452236FA146EAB459FF17F6BAA2</string>
+			<key>IDESourceControlWCCName</key>
+			<string>gooch-shading</string>
+		</dict>
+	</array>
+</dict>
+</plist>

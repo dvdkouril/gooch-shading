@@ -57,8 +57,11 @@ const GLchar * fsSource[] = {
 const GLchar * vsSource[] = {
     "#version 400\n",
     "in vec3 vp;\n",
+    "uniform mat4 modelViewProjection;\n",
     "void main(void){\n",
-    "   gl_Position = vec4(vp, 1.0);\n",
+    "   vec4 v = vec4(vp, 1.0);\n",
+    //"   gl_Position = vec4(vp, 1.0);\n",
+    "   gl_Position = modelViewProjection * v;\n",
     "}"
 };
 
@@ -84,15 +87,6 @@ void render(void) {
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     
-    /*//glBindVertexArray(vertexArrayId);
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDisableVertexAttribArray(0);
-    
     glm::mat4 Projection    = glm::perspective(45.0f, 4.0f / 3.0f, 1.0f, 100.0f);
     glm::mat4 View          = glm::lookAt(glm::vec3(4,3,3),
                                  glm::vec3(0,0,0),
@@ -103,12 +97,6 @@ void render(void) {
     GLuint mvpLocation = glGetUniformLocation(programId, "modelViewProjection");
     glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &MVP[0][0]);
     
-    glBegin(GL_LINES);
-    glVertex3d(-1.0, -1.0, 0.0);
-    glVertex3d(1.0, 1.0, 0.0);
-    glVertex3d(-1.0, 1.0, 0.0);
-    glVertex3d(1.0, -1.0, 0.0);
-    glEnd();*/
 }
 
 void setupVBOs() {

@@ -6,14 +6,20 @@
 //  Copyright (c) 2015 dvdkouril. All rights reserved.
 //
 
+// C++ libraries
 #include <iostream>
+#include <cstring>
+#include <vector>
+#include <string>
+
+// OpenGL related support libraries
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include <cstring>
-#include <vector>
+// Obj file loader
+#include "tiny_obj_loader.h"
 
 
 GLuint vboId;
@@ -24,36 +30,15 @@ GLuint vertexbuffer;
 GLuint vertexArrayId;
 GLuint vao = 0;
 
+GLsizeiptr numOfVerticesToRender;
+
 GLuint vertexArrayIds[3];
+GLfloat gameTime = 0.0f;
 
 glm::mat4 Projection;
 glm::vec4 myVector;
 
-/*const GLchar * vsSource[] = {
-    "#version 150\n",
-    "uniform mat4 modelViewProjection;\n",
-    "void main(void) {\n",
-    "   gl_FrontColor = gl_Color;\n",
-    "\n",
-    "}"
-};
-
-const GLchar * vsSourceNew[] = {
-    "#version 150\n",
-    "in vec3 position;\n",
-    "uniform mat4 modelViewProjection;\n",
-    "void main(void) {\n",
-    "   vec4 v = vec4(position, 1);\n",
-    "   gl_Position = modelViewProjection * v;\n"
-    "}\n"
-};
-
-const GLchar * fsSource[] = {
-    "#version 150\n",
-    "void main(void) {\n",
-    "   gl_FragColor = gl_Color;\n",
-    "}"
-};*/
+// Vertex Shader source ... TODO: load from file
 const GLchar * vsSource[] = {
     "#version 400\n",
     "in vec3 vp;\n",
@@ -65,6 +50,7 @@ const GLchar * vsSource[] = {
     "}"
 };
 
+// Fragment Shader source ... TODO: load from file
 const GLchar * fsSource[] = {
     "#version 400\n",
     "out vec4 frag_color;\n"
@@ -79,18 +65,23 @@ static const GLfloat vertexData [] = {
     -0.5f, -0.5f, 0.0f
 };
 
+GLfloat * cubeVertexData;
+
 void render(void) {
     
+    gameTime += 0.1f;
     glClearColor(0.1f, 0.1f, 0.1f, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(programId);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, numOfVerticesToRender );
     
     glm::mat4 Projection    = glm::perspective(45.0f, 4.0f / 3.0f, 1.0f, 100.0f);
     glm::mat4 View          = glm::lookAt(glm::vec3(4,3,3),
                                  glm::vec3(0,0,0),
                                  glm::vec3(0,1,0));
+    glm::mat4 rot           = glm::rotate(View, gameTime * 0.1f, glm::vec3(0.0, 1.0, 0.0));
+    View = rot;
     glm::mat4 Model         = glm::mat4(1.0f);
     glm::mat4 MVP           = Projection * View * Model;
     
@@ -102,7 +93,8 @@ void render(void) {
 void setupVBOs() {
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numOfVerticesToRender * sizeof(GLfloat), cubeVertexData, GL_STATIC_DRAW);
     
     //GLuint vao = 0;
     glGenVertexArrays(1, &vao);
@@ -181,20 +173,30 @@ void setupShaders(GLuint & program, GLuint &  vertexShader, GLuint & fragmentSha
 
 int setup() {
     
-    //GLuint vertexArrayId;
-    glGenVertexArrays(1, &vertexArrayId);
-    glBindVertexArray(vertexArrayId);
-    //glGenVertexArrays(3, vertexArrayIds);
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        std::cout << err << std::endl;
+    // Obj file loading
+    //std::string pathToFile = "dragon.obj"; // TODO: make so that I don't have to put the file next to the executable
+    std::string pathToFile = "cube.obj";
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    
+    std::string error = tinyobj::LoadObj(shapes, materials, pathToFile.c_str());
+    
+    std::cout << "loading obj file" << std::endl;
+    if (!error.empty()) {
+        std::cout << "...error:" << std::endl << error << std::endl;
+    } else {
+        std::cout << "...successful:" << std:: endl <<
+        "# of shapes: " << shapes.size() << std::endl;
     }
     
-    //GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+    numOfVerticesToRender = shapes[0].mesh.indices.size();
+    cubeVertexData = new GLfloat[shapes[0].mesh.indices.size()];
+    for (size_t f = 0; f < shapes[0].mesh.indices.size(); f++) {
+        unsigned int index = shapes[0].mesh.indices[f];
+        cubeVertexData[f] = shapes[0].mesh.positions[index];
+    }
     
+    // Compilation of shaders
     programId = glCreateProgram();
     setupShaders(programId, vertexShaderId, fragmentShaderId);
     glUseProgram(programId);
@@ -240,8 +242,9 @@ int main(int argc, char * argv[]) {
         std::cout << glerr << std::endl;
     }
     
-    setupVBOs();
     setup();
+    setupVBOs();
+    
     
     glUseProgram(programId);
     while (!glfwWindowShouldClose(win)) {

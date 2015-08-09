@@ -74,7 +74,7 @@ void render(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(programId);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, numOfVerticesToRender );
+    glDrawArrays(GL_TRIANGLES, 0, GLsizei(numOfVerticesToRender) );
     
     glm::mat4 Projection    = glm::perspective(45.0f, 4.0f / 3.0f, 1.0f, 100.0f);
     glm::mat4 View          = glm::lookAt(glm::vec3(4,3,3),
@@ -175,7 +175,8 @@ int setup() {
     
     // Obj file loading
     //std::string pathToFile = "dragon.obj"; // TODO: make so that I don't have to put the file next to the executable
-    std::string pathToFile = "cube.obj";
+    //std::string pathToFile = "cubeOld.obj";
+    std::string pathToFile = "sphere.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     
@@ -189,12 +190,52 @@ int setup() {
         "# of shapes: " << shapes.size() << std::endl;
     }
     
-    numOfVerticesToRender = shapes[0].mesh.indices.size();
-    cubeVertexData = new GLfloat[shapes[0].mesh.indices.size()];
-    for (size_t f = 0; f < shapes[0].mesh.indices.size(); f++) {
+    /*numOfVerticesToRender = shapes[0].mesh.positions.size();
+    cubeVertexData = new GLfloat[numOfVerticesToRender];
+    std::cout << "shapes[0].mesh.indices size: " << shapes[0].mesh.indices.size() << std::endl;
+    std::cout << "shapes[0].mesh.positions size: " << shapes[0].mesh.positions.size() << std::endl;
+    for (size_t f = 0; f < shapes[0].mesh.positions.size(); f++) {
         unsigned int index = shapes[0].mesh.indices[f];
-        cubeVertexData[f] = shapes[0].mesh.positions[index];
+        //cubeVertexData[f] = shapes[0].mesh.positions[index];
+        cubeVertexData[f] = shapes[0].mesh.positions[f];
+    }*/
+    
+    for (size_t f = 0; f < shapes[0].mesh.indices.size() / 3; f++) {
+        std::cout << "face[" << f << "] = " << shapes[0].mesh.indices[3*f+0] << "," << shapes[0].mesh.indices[3*f+1] << "," << shapes[0].mesh.indices[3*f+2] << "." << std::endl;
+        std::cout << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+0]] << " " << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+1]] << " " << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+2]] << std::endl;
     }
+    
+    numOfVerticesToRender = shapes[0].mesh.indices.size() * 3;
+    cubeVertexData = new GLfloat[numOfVerticesToRender];
+    size_t dataCurrentIndex = 0;
+    for (size_t f = 0; f < shapes[0].mesh.indices.size() / 3; f++) {
+        for (size_t i = 0; i < 3; i++) {
+            size_t vertexIndex = shapes[0].mesh.indices[3*f+i];
+            for (size_t c = 0; c < 3; c++) {
+                GLfloat coordinate = shapes[0].mesh.positions[3*vertexIndex+c];
+                cubeVertexData[dataCurrentIndex] = coordinate;
+                dataCurrentIndex++;
+            }
+            
+            //GLfloat x = shapes[0].mesh.positions[3*vertexIndex+0];
+            //GLfloat y = shapes[0].mesh.positions[3*vertexIndex+1];
+            //GLfloat z = shapes[0].mesh.positions[3*vertexIndex+2];
+            
+            
+        }
+        //size_t aIndex = shapes[0].mesh.indices[3*f+0];
+        //size_t bIndex = shapes[0].mesh.indices[3*f+1];
+        //size_t cIndex = shapes[0].mesh.indices[3*f+2];
+        
+    }
+    
+    /*for (size_t v = 0; v < shapes[0].mesh.positions.size() / 3; v++) {
+        std::cout << shapes[0].mesh.positions[3*v+0] << "," << shapes[0].mesh.positions[3*v+1] << "," << shapes[0].mesh.positions[3*v+2] << "." << std::endl;
+    }*/
+    
+    /*for (int i = 0; i < numOfVerticesToRender; i++) {
+        std::cout << cubeVertexData[i] << std::endl;
+    }*/
     
     // Compilation of shaders
     programId = glCreateProgram();

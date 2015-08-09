@@ -23,6 +23,8 @@
 
 
 GLuint vboId;
+GLuint vboNormalsId;
+
 GLuint programId;
 GLuint vertexShaderId;
 GLuint fragmentShaderId;
@@ -41,7 +43,9 @@ glm::vec4 myVector;
 // Vertex Shader source ... TODO: load from file
 const GLchar * vsSource[] = {
     "#version 400\n",
-    "in vec3 vp;\n",
+    "layout(location = 0) in vec3 vp;\n",
+    "layout(location = 1) in vec3 vn;\n",
+    //"in vec3 vp;\n",
     "uniform mat4 modelViewProjection;\n",
     "void main(void){\n",
     "   vec4 v = vec4(vp, 1.0);\n",
@@ -66,6 +70,7 @@ static const GLfloat vertexData [] = {
 };
 
 GLfloat * cubeVertexData;
+GLfloat * cubeVertexNormalData;
 
 void render(void) {
     
@@ -93,15 +98,26 @@ void render(void) {
 void setupVBOs() {
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    //glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, numOfVerticesToRender * sizeof(GLfloat), cubeVertexData, GL_STATIC_DRAW);
+    
+    glGenBuffers(1, &vboNormalsId);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormalsId);
+    glBufferData(GL_ARRAY_BUFFER, numOfVerticesToRender * sizeof(GLfloat), cubeVertexNormalData, GL_STATIC_DRAW);
     
     //GLuint vao = 0;
     glGenVertexArrays(1, &vao);
+    
+    
+    
     glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
+    
+    glEnableVertexAttribArray(0); // this has to be AFTER glBindVertexArray!!!!!
+    glEnableVertexAttribArray(1);
+    
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormalsId);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     
 }
 
@@ -162,6 +178,9 @@ void setupShaders(GLuint & program, GLuint &  vertexShader, GLuint & fragmentSha
     
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
+    
+    glBindAttribLocation(program, 0, "vp");
+    glBindAttribLocation(program, 1, "vn");
     
     std::cout << "linking program" << std::endl;
     glLinkProgram(program);
@@ -227,6 +246,19 @@ int setup() {
         //size_t bIndex = shapes[0].mesh.indices[3*f+1];
         //size_t cIndex = shapes[0].mesh.indices[3*f+2];
         
+    }
+    
+    cubeVertexNormalData = new GLfloat[numOfVerticesToRender];
+    dataCurrentIndex = 0;
+    for (size_t f = 0; f < shapes[0].mesh.indices.size() / 3; f++) {
+        for (size_t i = 0; i < 3; i++) {
+            size_t vertexIndex = shapes[0].mesh.indices[3*f+i];
+            for (size_t c = 0; c < 3; c++) {
+                GLfloat coordinate = shapes[0].mesh.normals[3*vertexIndex+c];
+                cubeVertexNormalData[dataCurrentIndex] = coordinate;
+                dataCurrentIndex++;
+            }
+        }
     }
     
     /*for (size_t v = 0; v < shapes[0].mesh.positions.size() / 3; v++) {

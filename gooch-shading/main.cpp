@@ -45,21 +45,39 @@ const GLchar * vsSource[] = {
     "#version 400\n",
     "layout(location = 0) in vec3 vp;\n",
     "layout(location = 1) in vec3 vn;\n",
-    //"in vec3 vp;\n",
+    "out vec4 pos;\n",
+    //"out vec3 normal;\n",
+    "   out vec3 n;\n",
     "uniform mat4 modelViewProjection;\n",
+    "uniform mat4 model;\n",
     "void main(void){\n",
     "   vec4 v = vec4(vp, 1.0);\n",
-    //"   gl_Position = vec4(vp, 1.0);\n",
-    "   gl_Position = modelViewProjection * v;\n",
+    "   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
+    "   pos = modelViewProjection * v;\n",
+    "   n = normalize(normalMatrix * vn);\n",
+    "   gl_Position = pos;\n",
     "}"
 };
 
 // Fragment Shader source ... TODO: load from file
 const GLchar * fsSource[] = {
     "#version 400\n",
+    //"in vec3 normal;\n",
+    "in vec3 n;\n"
+    "in vec4 pos;\n",
     "out vec4 frag_color;\n"
+    "uniform mat4 model;\n"
     "void main(void){\n",
-    "   frag_color = vec4(0.5, 0.0, 0.5, 1.0);\n",
+    //"   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
+    //"   vec3 n = normalize(normalMatrix * normal);\n",
+    "   vec3 lightPos = vec3(2.0, 2.0, 2.0);\n",
+    "   vec3 l = normalize(lightPos - vec3(pos));\n",
+    "   vec3 v = normalize(-vec3(pos));\n",
+    "   vec3 h = normalize(v + l);\n",
+    "   vec4 diffuse = vec4(0.5, 0.5, 0.5, 1.0) * (0.5, 0.5, 0.5, 1.0) * max(0.0, dot(n,l));\n",
+    "   vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0) * (0.1, 0.1, 0.1, 1.0);\n",
+    //"   frag_color = vec4(0.5, 0.0, 0.5, 1.0);\n",
+    "   frag_color = ambient + diffuse;\n",
     "}"
 };
 
@@ -92,6 +110,8 @@ void render(void) {
     
     GLuint mvpLocation = glGetUniformLocation(programId, "modelViewProjection");
     glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &MVP[0][0]);
+    GLuint modelLocation = glGetUniformLocation(programId, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &Model[0][0]); // maybe use transpose here?
     
 }
 
@@ -273,6 +293,8 @@ int setup() {
     programId = glCreateProgram();
     setupShaders(programId, vertexShaderId, fragmentShaderId);
     glUseProgram(programId);
+    
+    glEnable(GL_DEPTH_TEST);
     
     return 0;
 }

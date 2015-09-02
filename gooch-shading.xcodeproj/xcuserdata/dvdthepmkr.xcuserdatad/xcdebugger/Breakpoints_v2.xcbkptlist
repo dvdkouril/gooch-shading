@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "gooch-shading/main.cpp"
-            timestampString = "462384662.270736"
+            timestampString = "462863172.068703"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "207"
-            endingLineNumber = "207"
+            startingLineNumber = "198"
+            endingLineNumber = "198"
             landmarkName = "setupShaders(GLuint &amp; program, GLuint &amp; vertexShader, GLuint &amp; fragmentShader)"
             landmarkType = "7">
          </BreakpointContent>
@@ -234,11 +234,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "gooch-shading/main.cpp"
-            timestampString = "462861541.675092"
+            timestampString = "462863172.068703"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "267"
-            endingLineNumber = "267"
+            startingLineNumber = "316"
+            endingLineNumber = "316"
             landmarkName = "setup()"
             landmarkType = "7">
          </BreakpointContent>

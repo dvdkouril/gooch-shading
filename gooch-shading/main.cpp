@@ -254,26 +254,7 @@ void loadObjFile(std::string pathToFile) {
 
 }
 
-int setup() {
-    
-    loadObjFile("sphere.obj");
-    
-    // Compilation of shaders
-    programId = glCreateProgram();
-    setupShaders(programId, vertexShaderId, fragmentShaderId);
-    glUseProgram(programId);
-    
-    glEnable(GL_DEPTH_TEST);
-    
-    setupVBOs();
-    
-    return 0;
-}
-
-int main(int argc, char * argv[]) {
-    
-    //GLFWwindow *win;
-    
+int setupWindow(GLFWwindow *win) {
     if (!glfwInit()) {
         return -1;
     }
@@ -282,7 +263,7 @@ int main(int argc, char * argv[]) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
+    
     
     win = glfwCreateWindow(640, 480, "dvdkouril.", NULL, NULL);
     if(!win) {
@@ -308,6 +289,35 @@ int main(int argc, char * argv[]) {
         std::cout << glerr << std::endl;
     }
     
+    return 0;
+
+}
+
+int setup() {
+    
+    // initialize window object
+    setupWindow(win);
+    
+    // Loading OBJ file
+    loadObjFile("sphere.obj");
+    
+    // Compilation of shaders
+    programId = glCreateProgram();
+    setupShaders(programId, vertexShaderId, fragmentShaderId);
+    glUseProgram(programId);
+    
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    
+    // setup VBOs from data from OBJ file
+    setupVBOs();
+    
+    return 0;
+}
+
+int main(int argc, char * argv[]) {
+    
+    //GLFWwindow *win;
     setup();
     
     while (!glfwWindowShouldClose(win)) {

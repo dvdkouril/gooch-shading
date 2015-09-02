@@ -46,56 +46,6 @@ GLfloat gameTime = 0.0f;
 glm::mat4 Projection;
 glm::vec4 myVector;
 
-
-// Vertex Shader source ... TODO: load from file
-/*const GLchar * vsSource[] = {
-    "#version 400\n",
-    "layout(location = 0) in vec3 vp;\n",
-    "layout(location = 1) in vec3 vn;\n",
-    "out vec4 pos;\n",
-    //"out vec3 normal;\n",
-    "   out vec3 n;\n",
-    //"uniform mat4 modelViewProjection;\n",
-    "uniform mat4 model;\n",
-    "uniform mat4 view;\n",
-    "uniform mat4 projection;\n",
-    "void main(void){\n",
-    "   vec4 v = vec4(vp, 1.0);\n",
-    "   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
-    "   pos = view * model * v;\n",
-    "   n = normalize(normalMatrix * vn);\n",
-    "   gl_Position = projection * view * model * v;\n",
-    "}"
-};*/
-
-// Fragment Shader source ... TODO: load from file
-/*const GLchar * fsSource[] = {
-    "#version 400\n",
-    //"in vec3 normal;\n",
-    "in vec3 n;\n"
-    "in vec4 pos;\n",
-    "out vec4 frag_color;\n"
-    "uniform mat4 model;\n"
-    "void main(void){\n",
-    //"   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
-    //"   vec3 n = normalize(normalMatrix * normal);\n",
-    "   vec3 lightPos = vec3(5.0, 5.0, 5.0);\n",
-    "   vec3 l = normalize(lightPos - vec3(pos));\n",
-    "   vec3 v = normalize(-vec3(pos));\n",
-    "   vec3 h = normalize(v + l);\n",
-    "   vec4 diffuse = vec4(0.5, 0.5, 0.5, 1.0) * (0.5, 0.5, 0.5, 1.0) * max(0.0, dot(n,l));\n",
-    "   vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0) * (0.1, 0.1, 0.1, 1.0);\n",
-    //"   frag_color = vec4(0.5, 0.0, 0.5, 1.0);\n",
-    "   frag_color = ambient + diffuse;\n",
-    "}"
-};*/
-
-/*static const GLfloat vertexData [] = {
-    0.0f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f
-};*/
-
 GLfloat * cubeVertexData;
 GLfloat * cubeVertexNormalData;
 
@@ -115,7 +65,7 @@ void render(void) {
     glm::mat4 Model         = glm::mat4(1.0f);
     glm::mat4 rot           = glm::rotate(Model, gameTime * 0.1f, glm::vec3(0.0, 1.0, 0.0));
     Model = rot;
-    glm::mat4 tran          = glm::translate(Model, glm::vec3(3.0, 0.0, 0.0));
+    glm::mat4 tran          = glm::translate(Model, glm::vec3(1.0, 0.0, 0.0));
     Model = tran;
     glm::mat4 MVP           = Projection * View * Model;
     
@@ -254,9 +204,10 @@ void loadObjFile(std::string pathToFile) {
 
 }
 
-int setupWindow(GLFWwindow *win) {
+GLFWwindow * setupWindow() {
+    
     if (!glfwInit()) {
-        return -1;
+        return NULL;
     }
     
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -289,14 +240,14 @@ int setupWindow(GLFWwindow *win) {
         std::cout << glerr << std::endl;
     }
     
-    return 0;
+    return win;
 
 }
 
 int setup() {
     
     // initialize window object
-    setupWindow(win);
+    win = setupWindow();
     
     // Loading OBJ file
     loadObjFile("sphere.obj");
@@ -317,10 +268,10 @@ int setup() {
 
 int main(int argc, char * argv[]) {
     
-    //GLFWwindow *win;
     setup();
     
     while (!glfwWindowShouldClose(win)) {
+        
         render();
         
         glfwSwapBuffers(win);

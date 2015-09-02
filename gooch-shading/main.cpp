@@ -11,6 +11,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <fstream>
 
 // OpenGL related support libraries
 #include <GL/glew.h>
@@ -21,6 +22,11 @@
 // Obj file loader
 #include "tiny_obj_loader.h"
 
+// my classes
+#include "Shader.h"
+
+// Window object
+GLFWwindow *win;
 
 GLuint vboId;
 GLuint vboNormalsId;
@@ -40,27 +46,30 @@ GLfloat gameTime = 0.0f;
 glm::mat4 Projection;
 glm::vec4 myVector;
 
+
 // Vertex Shader source ... TODO: load from file
-const GLchar * vsSource[] = {
+/*const GLchar * vsSource[] = {
     "#version 400\n",
     "layout(location = 0) in vec3 vp;\n",
     "layout(location = 1) in vec3 vn;\n",
     "out vec4 pos;\n",
     //"out vec3 normal;\n",
     "   out vec3 n;\n",
-    "uniform mat4 modelViewProjection;\n",
+    //"uniform mat4 modelViewProjection;\n",
     "uniform mat4 model;\n",
+    "uniform mat4 view;\n",
+    "uniform mat4 projection;\n",
     "void main(void){\n",
     "   vec4 v = vec4(vp, 1.0);\n",
     "   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
-    "   pos = modelViewProjection * v;\n",
+    "   pos = view * model * v;\n",
     "   n = normalize(normalMatrix * vn);\n",
-    "   gl_Position = pos;\n",
+    "   gl_Position = projection * view * model * v;\n",
     "}"
-};
+};*/
 
 // Fragment Shader source ... TODO: load from file
-const GLchar * fsSource[] = {
+/*const GLchar * fsSource[] = {
     "#version 400\n",
     //"in vec3 normal;\n",
     "in vec3 n;\n"
@@ -70,7 +79,7 @@ const GLchar * fsSource[] = {
     "void main(void){\n",
     //"   mat3 normalMatrix = transpose(inverse(mat3(model)));\n",
     //"   vec3 n = normalize(normalMatrix * normal);\n",
-    "   vec3 lightPos = vec3(2.0, 2.0, 2.0);\n",
+    "   vec3 lightPos = vec3(5.0, 5.0, 5.0);\n",
     "   vec3 l = normalize(lightPos - vec3(pos));\n",
     "   vec3 v = normalize(-vec3(pos));\n",
     "   vec3 h = normalize(v + l);\n",
@@ -79,13 +88,13 @@ const GLchar * fsSource[] = {
     //"   frag_color = vec4(0.5, 0.0, 0.5, 1.0);\n",
     "   frag_color = ambient + diffuse;\n",
     "}"
-};
+};*/
 
-static const GLfloat vertexData [] = {
+/*static const GLfloat vertexData [] = {
     0.0f, 0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
     -0.5f, -0.5f, 0.0f
-};
+};*/
 
 GLfloat * cubeVertexData;
 GLfloat * cubeVertexNormalData;
@@ -101,17 +110,23 @@ void render(void) {
     
     glm::mat4 Projection    = glm::perspective(45.0f, 4.0f / 3.0f, 1.0f, 100.0f);
     glm::mat4 View          = glm::lookAt(glm::vec3(4,3,3),
-                                 glm::vec3(0,0,0),
-                                 glm::vec3(0,1,0));
-    glm::mat4 rot           = glm::rotate(View, gameTime * 0.1f, glm::vec3(0.0, 1.0, 0.0));
-    View = rot;
+                                          glm::vec3(0,0,0),
+                                          glm::vec3(0,1,0));
     glm::mat4 Model         = glm::mat4(1.0f);
+    glm::mat4 rot           = glm::rotate(Model, gameTime * 0.1f, glm::vec3(0.0, 1.0, 0.0));
+    Model = rot;
+    glm::mat4 tran          = glm::translate(Model, glm::vec3(3.0, 0.0, 0.0));
+    Model = tran;
     glm::mat4 MVP           = Projection * View * Model;
     
-    GLuint mvpLocation = glGetUniformLocation(programId, "modelViewProjection");
-    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &MVP[0][0]);
+    //GLuint mvpLocation = glGetUniformLocation(programId, "modelViewProjection");
+    //glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &MVP[0][0]);
     GLuint modelLocation = glGetUniformLocation(programId, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &Model[0][0]); // maybe use transpose here?
+    GLuint viewLocation = glGetUniformLocation(programId, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &View[0][0]);
+    GLuint projectionLocation = glGetUniformLocation(programId, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &Projection[0][0]);
     
 }
 
@@ -126,9 +141,7 @@ void setupVBOs() {
     
     //GLuint vao = 0;
     glGenVertexArrays(1, &vao);
-    
-    
-    
+
     glBindVertexArray(vao);
     
     glEnableVertexAttribArray(0); // this has to be AFTER glBindVertexArray!!!!!
@@ -182,40 +195,21 @@ void checkLinkStatus(GLuint program) {
 
 void setupShaders(GLuint & program, GLuint &  vertexShader, GLuint & fragmentShader) {
     
-    // compiling vertex shader
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, sizeof(vsSource) / sizeof(*vsSource), vsSource, NULL);
-    glCompileShader(vertexShader);
-    std::cout << "compiling vertex shader" << std::endl;
-    checkShaderStatus(vertexShader);
+    Shader * vs = new Shader(GL_VERTEX_SHADER, "/Users/dvdthepmkr/Dropbox/1234new-projects/computer-graphics/gooch-shading/gooch-shading/Shaders/vertexShader.glsl");
+    Shader * fs = new Shader(GL_FRAGMENT_SHADER, "/Users/dvdthepmkr/Dropbox/1234new-projects/computer-graphics/gooch-shading/gooch-shading/Shaders/fragmentShader.glsl");
     
-    // compiling fragment shader
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, sizeof(fsSource) / sizeof(*fsSource), fsSource, NULL);
-    glCompileShader(fragmentShader);
-    std::cout << "compiling fragment shader" << std::endl;
-    checkShaderStatus(fragmentShader);
-    
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    
+    glAttachShader(program, vs->getShaderId());
+    glAttachShader(program, fs->getShaderId());
     glBindAttribLocation(program, 0, "vp");
     glBindAttribLocation(program, 1, "vn");
-    
-    std::cout << "linking program" << std::endl;
     glLinkProgram(program);
+    // TODO: checkLinkStatus
     checkLinkStatus(program);
-    
-    //glUseProgram(0);
     
 }
 
-int setup() {
+void loadObjFile(std::string pathToFile) {
     
-    // Obj file loading
-    //std::string pathToFile = "dragon.obj"; // TODO: make so that I don't have to put the file next to the executable
-    //std::string pathToFile = "cubeOld.obj";
-    std::string pathToFile = "sphere.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     
@@ -229,21 +223,7 @@ int setup() {
         "# of shapes: " << shapes.size() << std::endl;
     }
     
-    /*numOfVerticesToRender = shapes[0].mesh.positions.size();
-    cubeVertexData = new GLfloat[numOfVerticesToRender];
-    std::cout << "shapes[0].mesh.indices size: " << shapes[0].mesh.indices.size() << std::endl;
-    std::cout << "shapes[0].mesh.positions size: " << shapes[0].mesh.positions.size() << std::endl;
-    for (size_t f = 0; f < shapes[0].mesh.positions.size(); f++) {
-        unsigned int index = shapes[0].mesh.indices[f];
-        //cubeVertexData[f] = shapes[0].mesh.positions[index];
-        cubeVertexData[f] = shapes[0].mesh.positions[f];
-    }*/
-    
-    for (size_t f = 0; f < shapes[0].mesh.indices.size() / 3; f++) {
-        std::cout << "face[" << f << "] = " << shapes[0].mesh.indices[3*f+0] << "," << shapes[0].mesh.indices[3*f+1] << "," << shapes[0].mesh.indices[3*f+2] << "." << std::endl;
-        std::cout << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+0]] << " " << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+1]] << " " << shapes[0].mesh.positions[shapes[0].mesh.indices[3*f+2]] << std::endl;
-    }
-    
+    // filling vertex data
     numOfVerticesToRender = shapes[0].mesh.indices.size() * 3;
     cubeVertexData = new GLfloat[numOfVerticesToRender];
     size_t dataCurrentIndex = 0;
@@ -255,19 +235,10 @@ int setup() {
                 cubeVertexData[dataCurrentIndex] = coordinate;
                 dataCurrentIndex++;
             }
-            
-            //GLfloat x = shapes[0].mesh.positions[3*vertexIndex+0];
-            //GLfloat y = shapes[0].mesh.positions[3*vertexIndex+1];
-            //GLfloat z = shapes[0].mesh.positions[3*vertexIndex+2];
-            
-            
         }
-        //size_t aIndex = shapes[0].mesh.indices[3*f+0];
-        //size_t bIndex = shapes[0].mesh.indices[3*f+1];
-        //size_t cIndex = shapes[0].mesh.indices[3*f+2];
-        
     }
     
+    // filling normal data
     cubeVertexNormalData = new GLfloat[numOfVerticesToRender];
     dataCurrentIndex = 0;
     for (size_t f = 0; f < shapes[0].mesh.indices.size() / 3; f++) {
@@ -280,14 +251,12 @@ int setup() {
             }
         }
     }
+
+}
+
+int setup() {
     
-    /*for (size_t v = 0; v < shapes[0].mesh.positions.size() / 3; v++) {
-        std::cout << shapes[0].mesh.positions[3*v+0] << "," << shapes[0].mesh.positions[3*v+1] << "," << shapes[0].mesh.positions[3*v+2] << "." << std::endl;
-    }*/
-    
-    /*for (int i = 0; i < numOfVerticesToRender; i++) {
-        std::cout << cubeVertexData[i] << std::endl;
-    }*/
+    loadObjFile("sphere.obj");
     
     // Compilation of shaders
     programId = glCreateProgram();
@@ -296,12 +265,14 @@ int setup() {
     
     glEnable(GL_DEPTH_TEST);
     
+    setupVBOs();
+    
     return 0;
 }
 
 int main(int argc, char * argv[]) {
     
-    GLFWwindow *win;
+    //GLFWwindow *win;
     
     if (!glfwInit()) {
         return -1;
@@ -338,10 +309,7 @@ int main(int argc, char * argv[]) {
     }
     
     setup();
-    setupVBOs();
     
-    
-    glUseProgram(programId);
     while (!glfwWindowShouldClose(win)) {
         render();
         

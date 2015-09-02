@@ -9,6 +9,28 @@
 #ifndef __gooch_shading__Shader__
 #define __gooch_shading__Shader__
 
-#include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <GL/glew.h>
+
+class Shader {
+    
+private:
+    char ** shaderSource;
+    GLenum shaderType;
+    GLuint shaderId;
+    int numOfLines;
+    
+    void checkShaderStatus();
+    
+public:
+    Shader() { shaderSource = NULL; }
+    Shader(GLenum type, char const * path);
+    
+    GLuint getShaderId() { return this->shaderId; }
+    
+    void loadSourceFile(char const * path);
+    
+};
 
 #endif /* defined(__gooch_shading__Shader__) */

@@ -11,9 +11,9 @@ uniform mat4 view;
 uniform mat4 projection;
 
 void main(void){
-   vec4 v = vec4(vp, 1.0);
-   mat3 normalMatrix = transpose(inverse(mat3(model)));
-   pos = view * model * v;
-   n = normalize(normalMatrix * vn);
-   gl_Position = projection * view * model * v;
+    vec4 v = vec4(vp, 1.0);
+    mat3 normalMatrix = transpose(inverse(mat3(model)));
+    pos = view * model * v;
+    n = normalize(normalMatrix * vn);
+    gl_Position = projection * view * model * v;
 }
